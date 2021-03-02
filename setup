@@ -1,0 +1,40 @@
+#! /bin/bash
+
+Colour='\033[1;31m'
+less='\033[0m'
+
+echo -e "${Colour}By using this script, you'l install TP-Link Omada Controller for a Raspberry Pi.\n\n${less}"
+
+echo -e "${Colour}\n\n Download and Extract Omada Controller.\n\n${less}"
+sudo wget https://static.tp-link.com/2020/202004/20200420/Omada_Controller_v3.2.10_linux_x64.tar.gz
+sudo tar zxvf Omada_Controller_v3.2.10_linux_x64.tar.gz
+
+echo -e "${Colour}\n\nInstall MongoDB\n\n${less}"
+sudo apt-get install mongodb
+sudo rm Omada_Controller_v3.2.10_linux_x64/bin/mongod
+sudo ln -s /usr/bin/mongod Omada_Controller_v3.2.10_linux_x64/bin/mongod
+
+echo -e "${Colour}\n\nInstall Updates, jsvc, net-tools, curl and openjdk-8-jdk\n\n${less}"
+sudo apt-get update
+sudo apt-get install jsvc
+sudo apt install net-tools
+sudo apt-get install curl
+sudo apt-get install openjdk-8-jdk
+
+echo -e "${Colour}\n\njava-Configururation\n\n${less}"
+sudo update-alternatives --config java
+sudo sed -i -e 's/JRE_HOME="${OMADA_HOME}\/jre"/JRE_HOME="\/usr\/lib\/jvm\/default-java"/g' Omada_Controller_v3.2.10_linux_x64/bin/control.sh
+sudo sed -i -e 's/JAVA_OPTS="-server/JAVA_OPTS="-client/g' Omada_Controller_v3.2.10_linux_x64/bin/control.sh
+sudo sed -i -e 's/${PORTT_TOOL} 127.0.0.1 ${HTTP_PORT} 500/netstat -plnt | grep :::${HTTP_PORT}/g' Omada_Controller_v3.2.10_linux_x64/bin/control.sh
+
+cd /usr/lib/jvm
+ls -hl
+ln -s java-8-openjdk-armhf default-java
+
+cd Omada_Controller_v3.2.10_linux_x64
+sudo bash install.sh
+
+echo -e "${Colour}\n\nThe system will now upgrade all the software and firmware, as well as clean up old/unused packages.\n\n${less}"
+sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get autoremove -y && sudo apt-get autoclean -y
+
+fi
